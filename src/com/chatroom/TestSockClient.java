@@ -13,6 +13,7 @@ public class TestSockClient {
 		DataOutputStream dos = null;
 		String str = null;
 		Socket socket = null;
+		@SuppressWarnings("resource")
 		Scanner input = new Scanner(System.in);
 
 		try {

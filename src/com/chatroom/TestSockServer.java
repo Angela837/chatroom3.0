@@ -16,6 +16,7 @@ public class TestSockServer {
 		Socket socket = null;
 		try {
 			// 准备
+			@SuppressWarnings("resource")
 			ServerSocket s = new ServerSocket(8888);
 			System.out.println("服务器启动！");
 			// 连接
