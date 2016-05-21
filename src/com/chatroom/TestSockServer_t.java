@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TestSockServer_t {
-	static List<Client> clientList = new ArrayList<Client>();//线程共享数据static
+	List<Client> clientList = new ArrayList<Client>();// 线程共享数据static
 
 	public void init() {
 		ServerSocket server = null;
@@ -21,7 +21,7 @@ public class TestSockServer_t {
 			// 服务端循环监听，若是有客户端连接，服务端接受并且创建一个线程，将连接通道socket放入该线程中，并启动线程。
 			while (true) {
 				socket = server.accept();
-				Client c = new TestSockServer_t().new Client(socket);
+				Client c = new Client(socket);
 				clientList.add(c);// 将新连接的客户端存入list中，以便于后面遍历发送信息。
 				c.start();
 			}
@@ -44,9 +44,10 @@ public class TestSockServer_t {
 
 	// 因为需要启用多个线程来完成客户端的连接，所以这里使用内部类。
 	class Client extends Thread {
-		Socket socket = null;
-		DataOutputStream dos = null;
-		DataInputStream dis = null;
+		Socket socket;
+		String name;
+		DataOutputStream dos;
+		DataInputStream dis;
 
 		// 使用带参数的构造方法来将通道放入线程中。
 		public Client(Socket socket) {
@@ -56,18 +57,26 @@ public class TestSockServer_t {
 		@Override
 		public void run() {
 			String str = null;
-			int i=0;
+
 			try {
 				dos = new DataOutputStream(socket.getOutputStream());
 				dis = new DataInputStream(socket.getInputStream());
 				// 循环遍历用来接收某个客户端传来的信息，并且将这些信息遍历发送给各个客户端。
 				while (true) {
 					if ((str = dis.readUTF()) != null) {
-						// dos.writeUTF(socket.getPort() + "say:" + str);
+						// 判断数据格式，如果#开始，更新自己的name属性，否则循环输出信息
+						
 						// 循环遍历将信息发送给所有客户端。
-						for ( i = 0; i < clientList.size(); i++) {
-							new DataOutputStream(clientList.get(i).socket.getOutputStream())
-									.writeUTF(socket.getPort() + ":" + str);
+						for (int i = 0; i < clientList.size(); i++) {
+							if (clientList.get(i).name.startsWith("#")) {
+								new DataOutputStream(clientList.get(i).socket.getOutputStream())
+										.writeUTF(clientList.get(i).name + ":" + str);
+
+							} else {
+
+								new DataOutputStream(clientList.get(i).socket.getOutputStream())
+										.writeUTF(socket.getPort() + ":" + str);
+							}
 						}
 					}
 				}
